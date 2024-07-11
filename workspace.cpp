@@ -111,7 +111,7 @@ int swupdate_test_func(const std::string& url, const Json::Value& target) {
     struct swupdate_request req;
     int rc;
 
-    updateFile.open("../example.swu");
+    updateFile.open("../swupdate-torizon-benchmark-image-verdin-imx8mm.swu");
 
     if (!updateFile) {
         std::cout << "Error opening file" << std::endl;

@@ -7,3 +7,9 @@ Takes input URL and target description (test.json), feeds into SWUpdate API and 
 - Add a verification step before successful installation and parition switches ^
 
 - Defining the hash is a seperate problem
+
+TODO:
+
+- Curl from url and use that as the file to install
+- Generate hash incrementally
+- Match data with target description. Reject/accept based on hash

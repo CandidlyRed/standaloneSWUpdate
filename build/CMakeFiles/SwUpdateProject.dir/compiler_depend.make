@@ -387,43 +387,6 @@ CMakeFiles/SwUpdateProject.dir/workspace.cpp.o: /home/candidly/standaloneSWUpdat
   /usr/include/x86_64-linux-gnu/c++/12/bits/basic_file.h \
   /usr/include/x86_64-linux-gnu/c++/12/bits/c++io.h \
   /usr/include/c++/12/bits/fstream.tcc \
-  /usr/include/x86_64-linux-gnu/curl/curl.h \
-  /usr/include/x86_64-linux-gnu/curl/curlver.h \
-  /usr/include/x86_64-linux-gnu/curl/system.h \
-  /usr/include/x86_64-linux-gnu/sys/socket.h \
-  /usr/include/x86_64-linux-gnu/bits/types/struct_iovec.h \
-  /usr/include/x86_64-linux-gnu/bits/socket.h \
-  /usr/include/x86_64-linux-gnu/bits/socket_type.h \
-  /usr/include/x86_64-linux-gnu/bits/sockaddr.h \
-  /usr/include/x86_64-linux-gnu/asm/socket.h \
-  /usr/include/asm-generic/socket.h \
-  /usr/include/linux/posix_types.h \
-  /usr/include/linux/stddef.h \
-  /usr/include/x86_64-linux-gnu/asm/posix_types.h \
-  /usr/include/x86_64-linux-gnu/asm/posix_types_64.h \
-  /usr/include/asm-generic/posix_types.h \
-  /usr/include/x86_64-linux-gnu/asm/bitsperlong.h \
-  /usr/include/asm-generic/bitsperlong.h \
-  /usr/include/x86_64-linux-gnu/asm/sockios.h \
-  /usr/include/asm-generic/sockios.h \
-  /usr/include/x86_64-linux-gnu/bits/types/struct_osockaddr.h \
-  /usr/lib/gcc/x86_64-linux-gnu/12/include/limits.h \
-  /usr/lib/gcc/x86_64-linux-gnu/12/include/syslimits.h \
-  /usr/include/limits.h \
-  /usr/include/x86_64-linux-gnu/bits/posix1_lim.h \
-  /usr/include/x86_64-linux-gnu/bits/local_lim.h \
-  /usr/include/linux/limits.h \
-  /usr/include/x86_64-linux-gnu/bits/posix2_lim.h \
-  /usr/include/x86_64-linux-gnu/bits/xopen_lim.h \
-  /usr/include/x86_64-linux-gnu/bits/uio_lim.h \
-  /usr/include/x86_64-linux-gnu/sys/time.h \
-  /usr/include/x86_64-linux-gnu/curl/easy.h \
-  /usr/include/x86_64-linux-gnu/curl/multi.h \
-  /usr/include/x86_64-linux-gnu/curl/curl.h \
-  /usr/include/x86_64-linux-gnu/curl/urlapi.h \
-  /usr/include/x86_64-linux-gnu/curl/options.h \
-  /usr/include/x86_64-linux-gnu/curl/header.h \
-  /usr/include/x86_64-linux-gnu/curl/websockets.h \
   /home/candidly/standaloneSWUpdate/jsoncpp/include/json/json.h \
   /home/candidly/standaloneSWUpdate/jsoncpp/include/json/config.h \
   /usr/include/c++/12/cstddef \
@@ -519,26 +482,6 @@ CMakeFiles/SwUpdateProject.dir/workspace.cpp.o: /home/candidly/standaloneSWUpdat
 
 /usr/include/c++/12/ext/concurrence.h:
 
-/usr/include/c++/12/bits/shared_ptr_base.h:
-
-/usr/include/c++/12/bits/shared_ptr.h:
-
-/usr/include/c++/12/bits/unique_ptr.h:
-
-/usr/include/c++/12/bits/uses_allocator.h:
-
-/usr/include/c++/12/bits/stl_raw_storage_iter.h:
-
-/usr/include/c++/12/bits/stl_tempbuf.h:
-
-/usr/include/c++/12/bits/stl_uninitialized.h:
-
-/home/candidly/standaloneSWUpdate/jsoncpp/include/json/config.h:
-
-/home/candidly/standaloneSWUpdate/jsoncpp/include/json/json.h:
-
-/usr/include/x86_64-linux-gnu/curl/header.h:
-
 /usr/include/x86_64-linux-gnu/asm/posix_types.h:
 
 /usr/include/c++/12/ostream:
@@ -569,13 +512,7 @@ CMakeFiles/SwUpdateProject.dir/workspace.cpp.o: /home/candidly/standaloneSWUpdat
 
 /usr/include/x86_64-linux-gnu/c++/12/bits/ctype_base.h:
 
-/usr/include/x86_64-linux-gnu/bits/uio_lim.h:
-
 /usr/include/x86_64-linux-gnu/bits/waitflags.h:
-
-/usr/include/linux/limits.h:
-
-/usr/include/x86_64-linux-gnu/bits/posix2_lim.h:
 
 /usr/lib/gcc/x86_64-linux-gnu/12/include/stdint.h:
 
@@ -597,8 +534,6 @@ CMakeFiles/SwUpdateProject.dir/workspace.cpp.o: /home/candidly/standaloneSWUpdat
 
 /usr/include/x86_64-linux-gnu/bits/sched.h:
 
-/usr/lib/gcc/x86_64-linux-gnu/12/include/syslimits.h:
-
 /usr/include/x86_64-linux-gnu/bits/signal_ext.h:
 
 /usr/include/c++/12/bits/stl_iterator.h:
@@ -609,8 +544,6 @@ CMakeFiles/SwUpdateProject.dir/workspace.cpp.o: /home/candidly/standaloneSWUpdat
 
 /usr/include/x86_64-linux-gnu/sys/ucontext.h:
 
-/usr/include/x86_64-linux-gnu/bits/local_lim.h:
-
 /usr/include/c++/12/type_traits:
 
 /usr/include/x86_64-linux-gnu/bits/types/sigval_t.h:
@@ -619,7 +552,7 @@ CMakeFiles/SwUpdateProject.dir/workspace.cpp.o: /home/candidly/standaloneSWUpdat
 
 /usr/include/c++/12/initializer_list:
 
-/usr/include/x86_64-linux-gnu/bits/xopen_lim.h:
+/usr/include/c++/12/bits/shared_ptr.h:
 
 /usr/include/x86_64-linux-gnu/bits/types/__sigval_t.h:
 
@@ -628,6 +561,8 @@ CMakeFiles/SwUpdateProject.dir/workspace.cpp.o: /home/candidly/standaloneSWUpdat
 /usr/include/x86_64-linux-gnu/bits/types/siginfo_t.h:
 
 /usr/include/x86_64-linux-gnu/bits/confname.h:
+
+/usr/include/x86_64-linux-gnu/bits/siginfo-arch.h:
 
 /usr/include/x86_64-linux-gnu/bits/unistd_ext.h:
 
@@ -713,8 +648,6 @@ CMakeFiles/SwUpdateProject.dir/workspace.cpp.o: /home/candidly/standaloneSWUpdat
 
 /usr/include/x86_64-linux-gnu/bits/sigevent-consts.h:
 
-/usr/include/x86_64-linux-gnu/curl/easy.h:
-
 /home/candidly/standaloneSWUpdate/jsoncpp/include/json/json_features.h:
 
 /usr/include/x86_64-linux-gnu/bits/endianness.h:
@@ -726,8 +659,6 @@ CMakeFiles/SwUpdateProject.dir/workspace.cpp.o: /home/candidly/standaloneSWUpdat
 /usr/include/c++/12/clocale:
 
 /usr/include/x86_64-linux-gnu/sys/types.h:
-
-/usr/include/x86_64-linux-gnu/curl/multi.h:
 
 /usr/include/asm-generic/socket.h:
 
@@ -741,21 +672,17 @@ CMakeFiles/SwUpdateProject.dir/workspace.cpp.o: /home/candidly/standaloneSWUpdat
 
 /usr/include/x86_64-linux-gnu/bits/floatn-common.h:
 
-/usr/include/x86_64-linux-gnu/curl/websockets.h:
-
 /usr/include/x86_64-linux-gnu/bits/types/wint_t.h:
 
 /usr/include/signal.h:
 
 /usr/include/strings.h:
 
-/usr/include/c++/12/bit:
-
-/usr/include/x86_64-linux-gnu/bits/struct_rwlock.h:
-
 /usr/include/c++/12/ext/atomicity.h:
 
 /usr/include/c++/12/string:
+
+/home/candidly/standaloneSWUpdate/jsoncpp/include/json/json.h:
 
 /usr/include/time.h:
 
@@ -764,12 +691,6 @@ CMakeFiles/SwUpdateProject.dir/workspace.cpp.o: /home/candidly/standaloneSWUpdat
 /usr/include/x86_64-linux-gnu/bits/getopt_posix.h:
 
 /usr/include/stdio.h:
-
-/usr/include/c++/12/tuple:
-
-/home/candidly/standaloneSWUpdate/swupdate/include/swupdate_status.h:
-
-/usr/include/c++/12/bits/functional_hash.h:
 
 /usr/include/c++/12/streambuf:
 
@@ -783,17 +704,7 @@ CMakeFiles/SwUpdateProject.dir/workspace.cpp.o: /home/candidly/standaloneSWUpdat
 
 /usr/include/x86_64-linux-gnu/bits/types/clock_t.h:
 
-/usr/include/c++/12/memory:
-
-/usr/include/x86_64-linux-gnu/bits/types/struct___jmp_buf_tag.h:
-
-/usr/include/x86_64-linux-gnu/bits/types/clockid_t.h:
-
 /usr/include/x86_64-linux-gnu/bits/time64.h:
-
-/usr/include/c++/12/ext/aligned_buffer.h:
-
-/usr/include/features-time64.h:
 
 /usr/include/c++/12/cctype:
 
@@ -811,15 +722,9 @@ CMakeFiles/SwUpdateProject.dir/workspace.cpp.o: /home/candidly/standaloneSWUpdat
 
 /usr/include/c++/12/map:
 
-/usr/include/x86_64-linux-gnu/curl/curl.h:
-
 /usr/include/c++/12/bits/charconv.h:
 
 /usr/include/x86_64-linux-gnu/bits/types/locale_t.h:
-
-/usr/include/c++/12/bits/align.h:
-
-/usr/include/x86_64-linux-gnu/bits/wctype-wchar.h:
 
 /usr/include/x86_64-linux-gnu/bits/struct_mutex.h:
 
@@ -834,6 +739,8 @@ CMakeFiles/SwUpdateProject.dir/workspace.cpp.o: /home/candidly/standaloneSWUpdat
 /usr/include/x86_64-linux-gnu/bits/types.h:
 
 /usr/include/string.h:
+
+/usr/include/c++/12/bits/stl_uninitialized.h:
 
 /usr/include/x86_64-linux-gnu/bits/environments.h:
 
@@ -869,8 +776,6 @@ CMakeFiles/SwUpdateProject.dir/workspace.cpp.o: /home/candidly/standaloneSWUpdat
 
 /usr/include/x86_64-linux-gnu/bits/types/time_t.h:
 
-/usr/lib/gcc/x86_64-linux-gnu/12/include/limits.h:
-
 /usr/include/x86_64-linux-gnu/bits/atomic_wide_counter.h:
 
 /usr/include/x86_64-linux-gnu/bits/sigaction.h:
@@ -886,8 +791,6 @@ CMakeFiles/SwUpdateProject.dir/workspace.cpp.o: /home/candidly/standaloneSWUpdat
 /usr/include/x86_64-linux-gnu/bits/types/cookie_io_functions_t.h:
 
 /usr/include/x86_64-linux-gnu/c++/12/bits/basic_file.h:
-
-/usr/include/x86_64-linux-gnu/bits/posix1_lim.h:
 
 /usr/include/x86_64-linux-gnu/bits/types/__FILE.h:
 
@@ -947,10 +850,6 @@ CMakeFiles/SwUpdateProject.dir/workspace.cpp.o: /home/candidly/standaloneSWUpdat
 
 /usr/include/c++/12/new:
 
-/usr/include/c++/12/bits/allocated_ptr.h:
-
-/usr/include/c++/12/bits/nested_exception.h:
-
 /usr/include/c++/12/bits/char_traits.h:
 
 /usr/include/c++/12/cstdint:
@@ -997,6 +896,8 @@ CMakeFiles/SwUpdateProject.dir/workspace.cpp.o: /home/candidly/standaloneSWUpdat
 
 /usr/include/c++/12/bits/stl_iterator_base_funcs.h:
 
+/usr/include/c++/12/bits/uses_allocator.h:
+
 /usr/include/c++/12/debug/assertions.h:
 
 /usr/include/x86_64-linux-gnu/bits/sockaddr.h:
@@ -1035,25 +936,17 @@ CMakeFiles/SwUpdateProject.dir/workspace.cpp.o: /home/candidly/standaloneSWUpdat
 
 /usr/include/c++/12/bits/stl_pair.h:
 
-/usr/include/x86_64-linux-gnu/curl/curlver.h:
-
 /usr/include/c++/12/debug/debug.h:
 
-/usr/include/x86_64-linux-gnu/bits/siginfo-arch.h:
-
-/usr/include/x86_64-linux-gnu/curl/urlapi.h:
-
 /usr/include/c++/12/ext/alloc_traits.h:
+
+/usr/include/c++/12/bits/alloc_traits.h:
 
 /usr/include/c++/12/bits/stl_construct.h:
 
 /usr/include/c++/12/bits/vector.tcc:
 
 /usr/include/c++/12/ext/string_conversions.h:
-
-/usr/include/c++/12/bits/alloc_traits.h:
-
-/usr/include/limits.h:
 
 /home/candidly/standaloneSWUpdate/swupdate/ipc/network_ipc.c:
 
@@ -1071,11 +964,17 @@ CMakeFiles/SwUpdateProject.dir/workspace.cpp.o: /home/candidly/standaloneSWUpdat
 
 /usr/include/c++/12/bits/locale_facets.h:
 
-/usr/include/x86_64-linux-gnu/curl/options.h:
-
 /usr/include/c++/12/bits/ostream.tcc:
 
+/home/candidly/standaloneSWUpdate/swupdate/include/swupdate_status.h:
+
+/usr/include/c++/12/bits/functional_hash.h:
+
+/usr/include/c++/12/tuple:
+
 /usr/include/c++/12/cwctype:
+
+/usr/include/c++/12/bits/unique_ptr.h:
 
 /usr/include/c++/12/bits/streambuf_iterator.h:
 
@@ -1091,6 +990,32 @@ CMakeFiles/SwUpdateProject.dir/workspace.cpp.o: /home/candidly/standaloneSWUpdat
 
 /usr/include/c++/12/bits/fstream.tcc:
 
-/usr/include/x86_64-linux-gnu/curl/system.h:
+/home/candidly/standaloneSWUpdate/jsoncpp/include/json/config.h:
 
-/usr/include/x86_64-linux-gnu/sys/time.h:
+/usr/include/x86_64-linux-gnu/bits/types/struct___jmp_buf_tag.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/clockid_t.h:
+
+/usr/include/c++/12/memory:
+
+/usr/include/c++/12/bits/stl_tempbuf.h:
+
+/usr/include/c++/12/bits/stl_raw_storage_iter.h:
+
+/usr/include/x86_64-linux-gnu/bits/wctype-wchar.h:
+
+/usr/include/c++/12/bits/align.h:
+
+/usr/include/x86_64-linux-gnu/bits/struct_rwlock.h:
+
+/usr/include/c++/12/bit:
+
+/usr/include/c++/12/bits/shared_ptr_base.h:
+
+/usr/include/c++/12/bits/nested_exception.h:
+
+/usr/include/c++/12/bits/allocated_ptr.h:
+
+/usr/include/features-time64.h:
+
+/usr/include/c++/12/ext/aligned_buffer.h:
