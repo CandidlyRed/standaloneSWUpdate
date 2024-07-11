@@ -1,0 +1,6 @@
+[submodule "jsoncpp"]
+	path = jsoncpp
+	url = https://github.com/open-source-parsers/jsoncpp.git
+[submodule "swupdate"]
+	path = swupdate
+	url = https://github.com/sbabic/swupdate.git
