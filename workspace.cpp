@@ -17,6 +17,7 @@ int verbose = 1;
 static pthread_mutex_t mymutex;
 static pthread_cond_t cv_end = PTHREAD_COND_INITIALIZER;
 
+// curl file helper functions
 static size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp) {
     std::ofstream *file = static_cast<std::ofstream*>(userp);
     file->write(static_cast<char*>(contents), size * nmemb);
@@ -48,6 +49,7 @@ static size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *use
 //     return 0;
 // }
 
+// json parser
 int parseJsonFile(const std::string& jsonFilePath, Json::Value& jsonData) {
     std::ifstream jsonFile(jsonFilePath, std::ifstream::binary);
     if (!jsonFile.is_open()) {
@@ -65,6 +67,7 @@ int parseJsonFile(const std::string& jsonFilePath, Json::Value& jsonData) {
     return 0;
 }
 
+// functions for swupdate_async_start
 int readimage(char **pbuf, int *size)
 {
     updateFile.read(buf, sizeof(buf));
