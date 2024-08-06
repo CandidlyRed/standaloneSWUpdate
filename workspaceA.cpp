@@ -1,20 +1,13 @@
 #include <iostream>
-#include <cstdio>
 #include <fstream>
 #include <string>
 #include <pthread.h>
-#include <chrono>
+#include <curl/curl.h>
 #include "json/json.h"
-
-// Include headers from PackageManagerInterface
 #include "libaktualizr/packagemanagerinterface.h"
-#include "bootloader/bootloader.h"
-#include "crypto/keymanager.h"
-#include "http/httpclient.h"
-#include "logging/logging.h"
-#include "storage/invstorage.h"
-#include "uptane/fetcher.h"
-#include "utilities/apiqueue.h"
+#include "libaktualizr/config.h"
+#include "libaktualizr/http/httpinterface.h"
+#include "libaktualizr/storage/invstorage.h"
 
 extern "C" {
 #include "network_ipc.h"
@@ -22,40 +15,17 @@ extern "C" {
 
 Json::Value jsonDataOut;
 
-struct DownloadState {
-    std::vector<char> buffer;
-    bool pause;
-};
-
 static pthread_mutex_t mymutex;
 static pthread_cond_t cv_end = PTHREAD_COND_INITIALIZER;
 
-DownloadState state = {std::vector<char>(), false};
 int verbose = 1;
 char buf[256];
 size_t bytes_read;
 
-size_t read_incrementally(PackageManagerInterface& package_manager, DownloadState& state, char* buffer, size_t buffer_size) {
-    if (state.buffer.empty() && !state.pause) {
-        // Resume download if buffer is empty
-        package_manager.resumeDownload(); // This would be a custom method to handle resuming in your package manager
-    }
-
-    // Copy data from the download buffer to the provided buffer
-    size_t copy_size = std::min(buffer_size, state.buffer.size());
-    std::copy(state.buffer.begin(), state.buffer.begin() + copy_size, buffer);
-    state.buffer.erase(state.buffer.begin(), state.buffer.begin() + copy_size);
-
-    return copy_size;
-}
-
-std::string hash_to_string(const std::vector<unsigned char>& hash) {
-    std::stringstream ss;
-    for (const auto& byte : hash) {
-        ss << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(byte);
-    }
-    return ss.str();
-}
+std::shared_ptr<HttpInterface> http;
+std::shared_ptr<INvStorage> storage;
+std::shared_ptr<PackageManagerInterface> packageManager;
+Uptane::Target target;
 
 int parseJsonFile(const std::string& jsonFilePath, Json::Value& jsonData) {
     std::ifstream jsonFile(jsonFilePath, std::ifstream::binary);
@@ -74,12 +44,27 @@ int parseJsonFile(const std::string& jsonFilePath, Json::Value& jsonData) {
     return 0;
 }
 
-int readimage(char **pbuf, int *size, PackageManagerInterface& package_manager) {
-    while ((bytes_read = read_incrementally(package_manager, state, buf, sizeof(buf))) > 0) {
-        *pbuf = buf;
-        package_manager.updateHasher(reinterpret_cast<const unsigned char*>(buf), bytes_read);
+int readimage(char **pbuf, int *size) {
+    std::string target_url = jsonDataOut["target"]["url"].asString();
+    std::unique_ptr<Uptane::Fetcher> fetcher = std::make_unique<Uptane::Fetcher>(storage, http);
+
+    auto response = http->download(target_url,
+        [](const void* contents, size_t size, size_t nmemb, void* userp) {
+            size_t downloaded = size * nmemb;
+            auto* ds = reinterpret_cast<DownloadState*>(userp);
+            ds->hasher().update(reinterpret_cast<const unsigned char*>(contents), downloaded);
+            return downloaded;
+        },
+        nullptr,  // ProgressHandler can be added if needed
+        *pbuf,
+        0
+    );
+
+    if (response == CURLE_OK) {
+        *size = bytes_read;
+        return 0;
     }
-    return bytes_read;
+    return -1;
 }
 
 int printstatus(ipc_message *msg) {
@@ -91,14 +76,16 @@ int printstatus(ipc_message *msg) {
     return 0;
 }
 
-int end(RECOVERY_STATUS status, PackageManagerInterface& package_manager) {
+int end(RECOVERY_STATUS status) {
     int end_status = (status == SUCCESS) ? EXIT_SUCCESS : EXIT_FAILURE;
     std::printf("SWUpdate %s\n", (status == FAILURE) ? "*failed* !" : "was successful !");
 
     if (status == SUCCESS) {
         std::printf("Executing post-update actions.\n");
-        std::vector<unsigned char> hash = package_manager.finalizeHasher();
-        if (hash_to_string(hash) != jsonDataOut["custom"]["swupdate"]["rawHashes"]["sha256"].asString()) {
+        ipc_message msg;
+        // Finalize the hash
+        auto final_hash = packageManager->finalizeInstall(target);
+        if (final_hash != jsonDataOut["custom"]["swupdate"]["rawHashes"]["sha256"].asString()) {
             std::fprintf(stderr, "Running post-update failed!\n");
             end_status = EXIT_FAILURE;
         }
@@ -108,28 +95,21 @@ int end(RECOVERY_STATUS status, PackageManagerInterface& package_manager) {
     pthread_cond_signal(&cv_end);
     pthread_mutex_unlock(&mymutex);
 
-    return 0;
+    return end_status;
 }
 
 int swupdate_test_func(const std::string& url) {
     struct swupdate_request req;
     int rc;
 
-    PackageManagerInterface package_manager;
-
-    // Initialize and set up the package manager
-    package_manager.init(url);
-
-    package_manager.initHasher();
+    // Initialize the actual `PackageManagerInterface`
+    PackageConfig pconfig;
+    BootloaderConfig bconfig;
+    packageManager = std::make_shared<PackageManagerInterface>(pconfig, bconfig, storage, http);
 
     swupdate_prepare_req(&req);
 
-    rc = swupdate_async_start([&package_manager](char** pbuf, int* size) {
-        return readimage(pbuf, size, package_manager);
-    }, printstatus, [&package_manager](RECOVERY_STATUS status) {
-        return end(status, package_manager);
-    }, &req, sizeof(req));
-
+    rc = swupdate_async_start(readimage, printstatus, end, &req, sizeof(req));
     if (rc < 0) {
         std::cout << "swupdate start error" << std::endl;
         pthread_mutex_unlock(&mymutex);
