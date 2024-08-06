@@ -6,6 +6,7 @@
 #include <openssl/sha.h>
 #include <curl/curl.h>
 #include "json/json.h"
+#include "libaktualizr/packagemanagerinterface.h"
 
 extern "C" {
 #include "network_ipc.h"
