@@ -4,3 +4,6 @@
 [submodule "swupdate"]
 	path = swupdate
 	url = https://github.com/sbabic/swupdate.git
+[submodule "aktualizr"]
+	path = aktualizr
+	url = https://github.com/uptane/aktualizr.git
