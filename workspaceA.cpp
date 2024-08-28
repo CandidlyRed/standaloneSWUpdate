@@ -2,7 +2,6 @@
 #include <fstream>
 #include <string>
 #include <pthread.h>
-#include <curl/curl.h>
 #include "json/json.h"
 #include "libaktualizr/packagemanagerinterface.h"
 #include "libaktualizr/config.h"
