@@ -1,9 +1,9 @@
+[submodule "aktualizr"]
+	path = aktualizr
+	url = https://github.com/uptane/aktualizr.git
 [submodule "jsoncpp"]
 	path = jsoncpp
 	url = https://github.com/open-source-parsers/jsoncpp.git
 [submodule "swupdate"]
 	path = swupdate
 	url = https://github.com/sbabic/swupdate.git
-[submodule "aktualizr"]
-	path = aktualizr
-	url = https://github.com/uptane/aktualizr.git
