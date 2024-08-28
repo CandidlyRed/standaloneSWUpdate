@@ -124,7 +124,7 @@ int swupdate_test_func(const std::string& url) {
 }
 
 int main() {
-    std::string url = "https://example.com/update";
+    std::string url = "https://link.storjshare.io/s/juoufh4dg6rfg4jkbcmyu5lvsggq/gsoc/swupdate-torizon-benchmark-image-verdin-imx8mm-20240702064741.swu?download=1";
     std::string jsonFilePath = "../test.json";
 
     if (parseJsonFile(jsonFilePath, jsonDataOut) == 0) {
