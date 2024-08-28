@@ -84,10 +84,11 @@ int end(RECOVERY_STATUS status) {
         std::printf("Executing post-update actions.\n");
         ipc_message msg;
         // Finalize the hash
-        auto final_hash = packageManager->finalizeInstall(target);
+        auto final_hash = packageManager->getCurrentHash();
         if (final_hash != jsonDataOut["custom"]["swupdate"]["rawHashes"]["sha256"].asString()) {
             std::fprintf(stderr, "Running post-update failed!\n");
             end_status = EXIT_FAILURE;
+            // does end_status actually cancel the update?
         }
     }
 
