@@ -89,16 +89,16 @@ int parseJsonFile(const std::string& jsonFilePath, Json::Value& jsonData) {
 
 static size_t DownloadHandler(char* contents, size_t size, size_t nmemb, void* userp) {
   assert(userp);
-  ds = static_cast<DownloadMetaStruct*>(userp);
+  auto* dst = static_cast<DownloadMetaStruct*>(userp);
   size_t downloaded = size * nmemb;
-  uint64_t expected = ds->target.length();
-  if ((ds->downloaded_length + downloaded) > expected) {
+  uint64_t expected = dst->target.length();
+  if ((dst->downloaded_length + downloaded) > expected) {
     return downloaded + 1;  // curl will abort if return unexpected size;
   }
 
-  ds->fhandle.write(contents, static_cast<std::streamsize>(downloaded));
-  ds->hasher().update(reinterpret_cast<const unsigned char*>(contents), downloaded);
-  ds->downloaded_length += downloaded;
+  dst->fhandle.write(contents, static_cast<std::streamsize>(downloaded));
+  dst->hasher().update(reinterpret_cast<const unsigned char*>(contents), downloaded);
+  dst->downloaded_length += downloaded;
   return downloaded;
 }
 
@@ -113,8 +113,8 @@ int readimage(char **pbuf, int *size) {
   auto response = http->downloadAsync(url,
     DownloadHandler,
     nullptr,  // ProgressHandler can be added if needed
-    ds->get(), // unsure
-    static_cast<curl_off_t>(ds->downloaded_length),
+    ds->get(), // userp
+    static_cast<curl_off_t>(ds->downloaded_length), // from
     nullptr //curlhandler easyp*
   );
 
@@ -168,6 +168,8 @@ int swupdate_test_func() {
   // PackageConfig pconfig;
   // BootloaderConfig bconfig;
   // packageManager = PackageManagerFactory::makePackageManager(pconfig, bconfig, storage, http);
+  Uptane::Target target("test", jsonDataOut);
+  ds = std_::make_unique<DownloadMetaStruct>(target, nullptr, nullptr);
 
   swupdate_prepare_req(&req);
 
@@ -186,11 +188,11 @@ int swupdate_test_func() {
 }
 
 int main() {
-  // std::string jsonFilePath = "../test.json";
+  std::string jsonFilePath = "./test.json";
 
-  // if (parseJsonFile(jsonFilePath, jsonDataOut) == 0) {
-  swupdate_test_func();
-  // }
+  if (parseJsonFile(jsonFilePath, jsonDataOut) == 0) {
+    swupdate_test_func();
+  }
 
   return 0;
 }
