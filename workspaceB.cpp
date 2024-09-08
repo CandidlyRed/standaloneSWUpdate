@@ -8,6 +8,8 @@
 // #include "libaktualizr/config.h"
 #include "http/httpclient.h"
 // #include "storage/invstorage.h"
+#include <unistd.h>  // For the read system call
+#include <fcntl.h>   // For open, O_RDONLY
 
 extern "C" {
 #include "network_ipc.h"
@@ -63,13 +65,13 @@ static pthread_mutex_t mymutex;
 static pthread_cond_t cv_end = PTHREAD_COND_INITIALIZER;
 
 int verbose = 1;
-char buf[256];
+char buf[4096];
 
-std::string url = "https://link.storjshare.io/s/juoufh4dg6rfg4jkbcmyu5lvsggq/gsoc/swupdate-torizon-benchmark-image-verdin-imx8mm-20240702064741.swu?download=1";
+std::string url = "https://link.storjshare.io/s/jwlztdmw6o6rizo6nj3f2bo6obka/gsoc/swupdate-torizon-benchmark-image-verdin-imx8mm-20240907181051.swu?download=1";
 std::shared_ptr<HttpInterface> http;
 // std::shared_ptr<INvStorage> storage;
 // std::shared_ptr<PackageManagerInterface> packageManager;
-DownloadMetaStruct* ds;
+std::unique_ptr<DownloadMetaStruct> ds;
 
 int parseJsonFile(const std::string& jsonFilePath, Json::Value& jsonData) {
   std::ifstream jsonFile(jsonFilePath, std::ifstream::binary);
@@ -105,22 +107,51 @@ static size_t DownloadHandler(char* contents, size_t size, size_t nmemb, void* u
 int readimage(char **pbuf, int *size) {
   // int ret;
 	// ret = read(fd, buf, sizeof(buf));
-	// *p = buf;
+	// *pbuf
 	// *size = ret;
 	// return ret;
   // std::string target_url = jsonDataOut["target"]["url"].asString();
+  std::printf("reading..");
 
-  auto response = http->downloadAsync(url,
+  std::future<HttpResponse> future_response = http->downloadAsync(url,
     DownloadHandler,
     nullptr,  // ProgressHandler can be added if needed
-    ds->get(), // userp
+    ds.get(), // userp
     static_cast<curl_off_t>(ds->downloaded_length), // from
     nullptr //curlhandler easyp*
   );
 
+  HttpResponse response = future_response.get();
+
   if (response.isOk()) {
-    *size = response;
-    return size;
+    std::printf("Download completed successfully.\n");
+
+    ds->fhandle.close();
+
+    int fd = open(ds->target.filename().c_str(), O_RDONLY);
+    if (fd < 0) {
+        std::fprintf(stderr, "Failed to open the downloaded file for reading.\n");
+        return -1;  // Error opening the file
+    }
+
+    ssize_t bytes_read;
+
+    if ((bytes_read = read(fd, buf, sizeof(buf))) > 0) {
+      // Reallocate memory to accommodate the new data
+      *pbuf = buf;
+      *size = bytes_read;
+      close(fd);
+      return bytes_read;
+    }
+
+    close(fd);  // Close the file descriptor
+
+    if (bytes_read < 0) {
+      std::fprintf(stderr, "Failed to read downloaded data.\n");
+      return -1;
+    }
+
+    return 0;
   }
 
   return -1;
@@ -143,6 +174,7 @@ int end(RECOVERY_STATUS status) {
     std::printf("Executing post-update actions.\n");
     // Finalize the hash
     auto final_hash = ds->hasher().getHash().HashString();
+    std::printf("Final hash %s", final_hash.c_str());
     std::string val = "";
     // val = jsonDataOut["custom"]["swupdate"]["rawHashes"]["sha256"].asString();
     if (final_hash != val) {
