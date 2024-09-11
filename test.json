@@ -2,12 +2,12 @@
     "hashes" : {
         "sha256" : "55573dd4fc52839b20f3e952aee58aa0eb22330783406a7e03698076b00af555"
     },
-    "length" : 308413,
+    "length" : 131284480,
     "custom" : {
         "cliUploaded" : true,
         "createdAt" : "2024-06-28T22:25:28Z",
         "hardwareIds" : ["verdin-imx8mm-swupdate"],
-        "name" : "swupdate.img",
+        "name" : "benchmark-image-verdin-imx8mm-20240907181051.swu",
         "swupdate": {
             "rawHashes" : {
                 "sha256" : "49973dd4fc52839b20f3e952aee58aa0eb22330783406a7e03698076b00afxd1"
