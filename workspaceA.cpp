@@ -188,6 +188,14 @@ static size_t DownloadHandler(char* contents, size_t size, size_t nmemb, void* u
   dst->fhandle.write(contents, static_cast<std::streamsize>(downloaded));
   dst->hasher().update(reinterpret_cast<const unsigned char*>(contents), downloaded);
   dst->downloaded_length += downloaded;
+
+  // Check if we've reached the end of the download
+  if (dst->downloaded_length >= expected) {
+      std::cout << "Download complete, setting end of stream." << std::endl;
+      dst->buffer.setEndOfStream();  // Signal that no more data is coming
+      dst->has_reached_end_of_stream = true;  // Set the flag
+  }
+
   return downloaded;
 }
 
@@ -208,6 +216,11 @@ int readimage(char **pbuf, int *size) {
   if (ds->buffer.hasError()) {
     std::fprintf(stderr, "Error occurred while reading downloaded data.\n");
     return -1;
+  }
+
+  if (ds->buffer.hasReachedEndOfStream()) {
+    std::cerr << "End of stream detected in readimage." << std::endl;
+    return 0;  // Signal that no more data is expected
   }
 
   return 0;
