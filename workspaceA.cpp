@@ -22,78 +22,17 @@ extern "C" {
 #include "uptane/fetcher.h"
 #include "utilities/apiqueue.h"
 
-// Circular buffer class definition
-class CircularBuffer {
- public:
-  explicit CircularBuffer(size_t size) : buffer_(size), head_(0), tail_(0), full_(false), error_(false), end_of_stream_(false) {}
+#include <mutex>
+#include <condition_variable>
+#include <queue>
 
-  bool write(const char* data, size_t bytes) {
-    std::unique_lock<std::mutex> lock(mutex_);
-    // Block the writer if the buffer is full and wait for the reader to consume
-    cond_var_.wait(lock, [&] { return !full_ || error_; });
+std::mutex buffer_mutex;
+std::condition_variable buffer_cv;
+std::queue<std::vector<char>> data_queue; // A queue to hold chunks of data
 
-    if (error_) {
-      std::cerr << "Buffer error detected, unable to write." << std::endl;
-      return false;
-    }
-
-    for (size_t i = 0; i < bytes; ++i) {
-      buffer_[head_] = data[i];
-      head_ = (head_ + 1) % buffer_.size();
-      if (head_ == tail_) {
-        full_ = true;  // Buffer is full
-        break;
-      }
-    }
-    cond_var_.notify_one();  // Notify reader that data is available
-    std::cerr << "Writing " << bytes << " bytes to buffer. Head: " << head_ << " Tail: " << tail_ << std::endl;
-    return true;
-  }
-
-  size_t read(char* data, size_t max_bytes) {
-    std::unique_lock<std::mutex> lock(mutex_);
-    // Wait until there's data to read or the stream ends or an error occurs
-    cond_var_.wait(lock, [&] { return (head_ != tail_ || end_of_stream_ || error_); });
-
-    if (error_) {
-      std::cerr << "Buffer error detected during read." << std::endl;
-      return 0;  // Propagate the error
-    }
-
-    size_t bytes_read = 0;
-    while (bytes_read < max_bytes && tail_ != head_) {
-      data[bytes_read++] = buffer_[tail_];
-      tail_ = (tail_ + 1) % buffer_.size();
-      full_ = false;  // Data was consumed, so buffer is not full anymore
-    }
-
-    cond_var_.notify_one();  // Notify writer that space is available
-    std::cerr << "Reading " << bytes_read << " bytes from buffer. Head: " << head_ << " Tail: " << tail_ << std::endl;
-    return bytes_read;
-  }
-
-  void setEndOfStream() {
-    std::unique_lock<std::mutex> lock(mutex_);
-    end_of_stream_ = true;
-    cond_var_.notify_all();
-  }
-
-  void setError() {
-    std::unique_lock<std::mutex> lock(mutex_);
-    error_ = true;
-    cond_var_.notify_all();
-  }
-
-  bool hasError() const { return error_; }
-  bool hasReachedEndOfStream() const { return end_of_stream_; }
-
- private:
-  std::vector<char> buffer_;
-  size_t head_, tail_;
-  bool full_, error_, end_of_stream_;
-  mutable std::mutex mutex_;
-  std::condition_variable cond_var_;
-};
+// Flags to control the flow
+bool pause_download = false;
+bool stop_download = false;
 
 struct DownloadMetaStruct {
  public:
@@ -102,10 +41,14 @@ struct DownloadMetaStruct {
         target{std::move(target_in)},
         token{token_in},
         progress_cb{std::move(progress_cb_in)},
-        time_lastreport{std::chrono::steady_clock::now()},
-        has_error(false),
-        has_reached_end_of_stream(false) {}
-
+        time_lastreport{std::chrono::steady_clock::now()} {
+    // Open the file for writing in the constructor
+    fhandle.open("output_file_path", std::ios::binary | std::ios::out);
+    if (!fhandle.is_open()) {
+        std::cerr << "Failed to open the file for writing." << std::endl;
+        throw std::runtime_error("Failed to open file");
+    }
+  }
   uintmax_t downloaded_length{0};
   unsigned int last_progress{0};
   std::ofstream fhandle;
@@ -123,13 +66,8 @@ struct DownloadMetaStruct {
   Uptane::Target target;
   const api::FlowControlToken* token;
   FetcherProgressCb progress_cb;
+  // each LogProgressInterval msec log dowload progress for big files
   std::chrono::time_point<std::chrono::steady_clock> time_lastreport;
-
-  CircularBuffer buffer{8196};  // Buffer size
-
-  // Flags for error and end-of-stream handling
-  bool has_error;
-  bool has_reached_end_of_stream;
 
  private:
   MultiPartSHA256Hasher sha256_hasher;
@@ -145,8 +83,6 @@ int verbose = 1;
 
 std::string url = "https://link.storjshare.io/s/jwlztdmw6o6rizo6nj3f2bo6obka/gsoc/swupdate-torizon-benchmark-image-verdin-imx8mm-20240907181051.swu?download=1";
 std::shared_ptr<HttpInterface> http;
-// std::shared_ptr<INvStorage> storage;
-// std::shared_ptr<PackageManagerInterface> packageManager;
 std::unique_ptr<DownloadMetaStruct> ds;
 
 int parseJsonFile(const std::string& jsonFilePath, Json::Value& jsonData) {
@@ -166,66 +102,60 @@ int parseJsonFile(const std::string& jsonFilePath, Json::Value& jsonData) {
 }
 
 static size_t DownloadHandler(char* contents, size_t size, size_t nmemb, void* userp) {
-  assert(userp);
-  auto* dst = static_cast<DownloadMetaStruct*>(userp);
-  size_t downloaded = size * nmemb;
-  uint64_t expected = dst->target.length();
+    assert(userp);
+    auto* dst = static_cast<DownloadMetaStruct*>(userp);
+    size_t downloaded = size * nmemb;
+    uint64_t expected = dst->target.length();
 
-  if (dst->has_error || dst->has_reached_end_of_stream) {
-    return CURL_WRITEFUNC_ERROR;  // If an error occurred or the stream ended, abort
-  }
+    if ((dst->downloaded_length + downloaded) > expected) {
+        std::cerr << "Download size exceeds expected length." << std::endl;
+        return downloaded + 1; // Abort download
+    }
 
-  if ((dst->downloaded_length + downloaded) > expected) {
-    return downloaded + 1;  // curl will abort if return unexpected size;
-  }
+    try {
+        if (!dst->fhandle.is_open()) {
+            std::cerr << "File not open for writing in DownloadHandler." << std::endl;
+            return 0; // Abort download
+        }
 
-  if (!dst->buffer.write(contents, downloaded)) {
-    dst->buffer.setError();  // If buffer failed to write, propagate the error
-    std::cerr << "Failed to write to buffer." << std::endl;
-    return CURL_WRITEFUNC_ERROR;
-  }
+        dst->fhandle.write(contents, static_cast<std::streamsize>(downloaded));
+        if (!dst->fhandle) {
+            std::cerr << "Error writing to file." << std::endl;
+            return 0; // Abort download
+        }
 
-  dst->fhandle.write(contents, static_cast<std::streamsize>(downloaded));
-  dst->hasher().update(reinterpret_cast<const unsigned char*>(contents), downloaded);
-  dst->downloaded_length += downloaded;
+        dst->hasher().update(reinterpret_cast<const unsigned char*>(contents), downloaded);
+        dst->downloaded_length += downloaded;
+        // std::cout << "Downloaded: " << dst->downloaded_length << "/" << expected << std::endl;
+    } catch (const std::exception& e) {
+        std::cerr << "Exception in DownloadHandler: " << e.what() << std::endl;
+        return 0; // Abort download
+    }
 
-  // Check if we've reached the end of the download
-  if (dst->downloaded_length >= expected) {
-      std::cout << "Download complete, setting end of stream." << std::endl;
-      dst->buffer.setEndOfStream();  // Signal that no more data is coming
-      dst->has_reached_end_of_stream = true;  // Set the flag
-  }
-
-  return downloaded;
+    return downloaded;
 }
 
-int readimage(char **pbuf, int *size) {
-  std::printf("reading..\n");
 
-  static char temp_buf[8196];  // Making this buffer static so it persists
-  size_t bytes_read = ds->buffer.read(temp_buf, sizeof(temp_buf));
+int readimage(char** pbuf, int* size) {
+    std::unique_lock<std::mutex> lock(buffer_mutex);
 
-  std::cerr << "Bytes read from buffer in readimage: " << bytes_read << std::endl;
+    // Wait until there is data in the buffer or download is stopped
+    while (data_queue.empty() && !stop_download) {
+        buffer_cv.wait(lock);
+    }
 
-  if (bytes_read > 0) {
-    *pbuf = temp_buf;  // Pointing to the persistent buffer
-    *size = bytes_read;
-    return bytes_read;
-  }
+    if (stop_download) {
+        return -1;
+    }
 
-  if (ds->buffer.hasError()) {
-    std::fprintf(stderr, "Error occurred while reading downloaded data.\n");
-    return -1;
-  }
+    // Get the data from the queue
+    auto& buffer = data_queue.front();
+    *pbuf = const_cast<char*>(buffer.data());
+    *size = static_cast<int>(buffer.size());
+    data_queue.pop();
 
-  if (ds->buffer.hasReachedEndOfStream()) {
-    std::cerr << "End of stream detected in readimage." << std::endl;
-    return 0;  // Signal that no more data is expected
-  }
-
-  return 0;
+    return *size;
 }
-
 
 int printstatus(ipc_message *msg) {
   if (verbose) {
@@ -237,6 +167,12 @@ int printstatus(ipc_message *msg) {
 }
 
 int end(RECOVERY_STATUS status) {
+  ds->fhandle.flush();
+  if (!ds->fhandle) {
+      std::cerr << "Error flushing file." << std::endl;
+      return 0; // Abort download
+  }
+
   int end_status = (status == SUCCESS) ? EXIT_SUCCESS : EXIT_FAILURE;
   std::printf("SWUpdate %s\n", (status == FAILURE) ? "*failed* !" : "was successful !");
 
@@ -250,8 +186,12 @@ int end(RECOVERY_STATUS status) {
     if (final_hash != val) {
       std::fprintf(stderr, "Running post-update failed!\n");
       end_status = EXIT_FAILURE;
-      // does end_status actually cancel the update?
     }
+  }
+
+  // Close the file handle
+  if (ds->fhandle.is_open()) {
+    ds->fhandle.close();
   }
 
   pthread_mutex_lock(&mymutex);
@@ -265,11 +205,7 @@ int swupdate_test_func() {
   struct swupdate_request req;
   int rc;
 
-  // Initialize the actual `PackageManagerInterface`
   http = std::make_shared<HttpClient>();
-  // PackageConfig pconfig;
-  // BootloaderConfig bconfig;
-  // packageManager = PackageManagerFactory::makePackageManager(pconfig, bconfig, storage, http);
   Uptane::Target target("test", jsonDataOut);
   ds = std_::make_unique<DownloadMetaStruct>(target, nullptr, nullptr);
 
@@ -290,14 +226,11 @@ int swupdate_test_func() {
     static_cast<curl_off_t>(ds->downloaded_length)  // from
   );
 
-  if (!response.isOk()) {
-    std::cerr << "Download failed with HTTP response code: " << response.getStatusStr() << std::endl;
-    ds->buffer.setError();  // Propagate error to the reader side
-  } else {
-    std::cout << "Download completed successfully, setting end of stream." << std::endl;
-    ds->buffer.setEndOfStream();  // Signal end of stream after download completes
+  {
+      std::unique_lock<std::mutex> lock(buffer_mutex);
+      stop_download = true;
+      buffer_cv.notify_all(); // Notify to break out of waiting in readimage
   }
-
 
   pthread_mutex_lock(&mymutex);
   pthread_cond_wait(&cv_end, &mymutex);
